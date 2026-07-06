@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
         <footer className="mx-auto max-w-7xl px-4 pb-6 pt-2 text-[10px] uppercase tracking-widest text-phosphor-muted/60">
-          <p>─── session encrypted · credentials never leave the server ───</p>
+          <p>─── credentials and answer keys never leave the server ───</p>
         </footer>
       </body>
     </html>

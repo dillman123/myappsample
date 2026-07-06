@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // Glassmorphism modal overlay with terminal chrome.
 export function Modal({
@@ -16,8 +16,12 @@ export function Modal({
   children: React.ReactNode;
   wide?: boolean;
 }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (!open) return;
+    // Move focus into the dialog for keyboard users.
+    closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -46,6 +50,8 @@ export function Modal({
             ┌ {title} ┐
           </h2>
           <button
+            ref={closeRef}
+            type="button"
             onClick={onClose}
             className="px-2 text-phosphor-muted transition-colors hover:text-red-term"
             aria-label="Close"

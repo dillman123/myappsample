@@ -154,11 +154,27 @@ export default function DashboardPage() {
           ┌ active classes ┐
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {courses.map((course) => (
+          {active.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
       </section>
+
+      {/* Completed / planned classes */}
+      {courses.some((c) => c.status !== "active") && (
+        <section>
+          <h2 className="mb-3 text-xs uppercase tracking-widest text-phosphor-muted">
+            ┌ archive ┐
+          </h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {courses
+              .filter((c) => c.status !== "active")
+              .map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

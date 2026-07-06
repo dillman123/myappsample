@@ -11,6 +11,15 @@ import type { ChatMessage, StudySession } from "../types";
 
 const MODEL = "claude-opus-4-8";
 
+// Imported courses can carry arbitrarily large notes; cap what we put
+// in the system prompt to bound request size, latency and cost.
+const MAX_NOTES_CHARS = 8000;
+
+function truncateNotes(notes: string): string {
+  if (notes.length <= MAX_NOTES_CHARS) return notes;
+  return `${notes.slice(0, MAX_NOTES_CHARS)}\n\n[... notes truncated for length — ask the student which section to focus on]`;
+}
+
 function getClient(): Anthropic | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   return new Anthropic();
@@ -27,7 +36,7 @@ Current study session context:
 - Vocabulary: ${session.vocab.map((v) => `${v.term} — ${v.definition}`).join("; ")}
 
 Session notes:
-${session.notesMarkdown}`;
+${truncateNotes(session.notesMarkdown)}`;
 }
 
 /**

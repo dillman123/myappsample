@@ -20,10 +20,27 @@ import { gradeLongFormWithAI } from "../tutor/ai";
 
 // Assessments are generated per request and cached here so grading can
 // look up the answer key. A real deployment would persist these.
+// Bounded FIFO: oldest entries are evicted past MAX_CACHED_ASSESSMENTS
+// (Map preserves insertion order), so the cache can't grow unbounded.
+const MAX_CACHED_ASSESSMENTS = 200;
 const g = globalThis as unknown as { __assessments?: Map<string, Assessment> };
 function assessmentCache(): Map<string, Assessment> {
   if (!g.__assessments) g.__assessments = new Map();
   return g.__assessments;
+}
+
+function cacheAssessment(assessment: Assessment) {
+  const cache = assessmentCache();
+  cache.set(assessment.id, assessment);
+  while (cache.size > MAX_CACHED_ASSESSMENTS) {
+    const oldest = cache.keys().next().value;
+    if (oldest === undefined) break;
+    cache.delete(oldest);
+  }
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** Deterministic-ish shuffle seeded by string, so choices vary per session. */
@@ -67,7 +84,7 @@ export function generateAssessment(session: StudySession): Assessment {
     const q: FillInTheBlankQuestion = {
       id: `q-fb-${i}`,
       format: "fill-in-the-blank",
-      prompt: `Fill in the blank: ${v.definition.replace(new RegExp(v.term, "ig"), "____")}\nThe term is: ____`,
+      prompt: `Fill in the blank: ${v.definition.replace(new RegExp(escapeRegExp(v.term), "ig"), "____")}\nThe term is: ____`,
       answer: v.term,
       points: 2,
     };
@@ -92,7 +109,7 @@ export function generateAssessment(session: StudySession): Assessment {
     title: `Session ${session.index} Assessment: ${session.title}`,
     questions,
   };
-  assessmentCache().set(assessment.id, assessment);
+  cacheAssessment(assessment);
   return assessment;
 }
 

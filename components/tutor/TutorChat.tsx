@@ -15,11 +15,13 @@ export function TutorChat({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: `Tutor online for "${sessionTitle}". Ask me about any concept, request a walkthrough, or say "quiz me" for guidance on the assessment.`,
+      content: `Tutor ready for "${sessionTitle}". Ask me about any concept, request a walkthrough, or say "quiz me" for guidance on the assessment.`,
     },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  // "ready" until the first reply tells us which mode the server is in.
+  const [mode, setMode] = useState<"ready" | "ai" | "offline" | "error">("ready");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,8 +46,14 @@ export function TutorChat({
       const reply: string = res.ok
         ? data.reply
         : (data.error ?? "Tutor request failed — try again.");
+      if (res.ok) {
+        setMode(reply.startsWith("[offline tutor]") ? "offline" : "ai");
+      } else {
+        setMode("error");
+      }
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch {
+      setMode("error");
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Network error — the tutor endpoint is unreachable." },
@@ -62,8 +70,22 @@ export function TutorChat({
           ┌ ai tutor ┐
         </h2>
         <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-phosphor-muted">
-          <span className="h-1.5 w-1.5 rounded-full bg-phosphor-500 shadow-[0_0_5px_#2eff6e]" />
-          online
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              mode === "error"
+                ? "bg-red-term shadow-[0_0_5px_#ff5c5c]"
+                : mode === "offline"
+                  ? "bg-amber-term shadow-[0_0_5px_#ffb347]"
+                  : "bg-phosphor-500 shadow-[0_0_5px_#2eff6e]"
+            }`}
+          />
+          {mode === "ai"
+            ? "ai online"
+            : mode === "offline"
+              ? "offline mode"
+              : mode === "error"
+                ? "unreachable"
+                : "ready"}
         </span>
       </div>
 
