@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* ── Retro-Tech Terminal theme ──────────────────────────────────────
+   High-contrast green on dark charcoal, monospaced everywhere,
+   scanline overlay + subtle CRT flicker. */
+
+@theme {
+  --color-charcoal-950: #0a0c0a;
+  --color-charcoal-900: #101310;
+  --color-charcoal-800: #171b17;
+  --color-charcoal-700: #212721;
+
+  --color-phosphor-300: #7dffa8;
+  --color-phosphor-400: #4dff88;
+  --color-phosphor-500: #2eff6e;
+  --color-phosphor-600: #1fd457;
+  --color-phosphor-dim: #356b46;
+  --color-phosphor-muted: #4a6b52;
+
+  --color-amber-term: #ffb347;
+  --color-cyan-term: #4de8ff;
+  --color-red-term: #ff5c5c;
+
+  --font-mono: "JetBrains Mono", "Fira Code", "IBM Plex Mono", ui-monospace,
+    SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-charcoal-950);
+  color: var(--color-phosphor-400);
+  font-family: var(--font-mono);
+  min-height: 100%;
+}
+
+::selection {
+  background: var(--color-phosphor-500);
+  color: var(--color-charcoal-950);
+}
+
+/* Thin phosphor scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-phosphor-muted) transparent;
+}
+
+/* ── Scanline overlay ──────────────────────────────────────────────── */
+.crt-scanlines::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* Soft vignette + phosphor glow wash */
+.crt-scanlines::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 49;
+  background:
+    radial-gradient(ellipse at center, rgba(46, 255, 110, 0.035) 0%, transparent 65%),
+    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+/* ── Subtle CRT flicker ────────────────────────────────────────────── */
+@keyframes crt-flicker {
+  0%   { opacity: 1; }
+  97%  { opacity: 1; }
+  97.5% { opacity: 0.965; }
+  98%  { opacity: 1; }
+  99%  { opacity: 0.985; }
+  100% { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: crt-flicker 4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker {
+    animation: none;
+  }
+}
+
+/* ── Terminal chrome helpers ───────────────────────────────────────── */
+.term-panel {
+  background: color-mix(in srgb, var(--color-charcoal-900) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-phosphor-500) 25%, transparent);
+  box-shadow:
+    inset 0 0 24px rgba(46, 255, 110, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
+.term-glow {
+  text-shadow: 0 0 6px rgba(46, 255, 110, 0.55);
+}
+
+.term-glow-amber {
+  text-shadow: 0 0 6px rgba(255, 179, 71, 0.55);
+}
+
+.term-glow-cyan {
+  text-shadow: 0 0 6px rgba(77, 232, 255, 0.55);
+}
+
+/* Glassmorphism for modal overlays */
+.glass-modal {
+  background: color-mix(in srgb, var(--color-charcoal-800) 70%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid color-mix(in srgb, var(--color-phosphor-500) 35%, transparent);
+  box-shadow:
+    0 0 60px rgba(46, 255, 110, 0.08),
+    0 24px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* Blinking block cursor */
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.term-cursor::after {
+  content: "▊";
+  margin-left: 2px;
+  animation: cursor-blink 1.1s steps(1) infinite;
+}
